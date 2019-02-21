@@ -36,7 +36,8 @@ import java.util.Map;
 
 
 public class Tokenizer { // #change classname to express what it does.
-    private static final String CHARSET = "ISO-8859-1"; // #style #change order of modifiers
+    // #change modifier order. #change charset/encoding to UTF-8, since it's defacto standard and ISO-8859-1 is dead.
+    private static final String CHARSET = "UTF-8";
 
     private File inputDir;
     private int minTokenLength; // #change: give descriptive names
