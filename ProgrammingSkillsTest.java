@@ -24,6 +24,7 @@ import java.util.Map;
  *    Output this information.
  *
  * @author zesch
+ * @version v2 #change filename to match class, put version in doc and use version control for keeping track. 
  */
 public class ProgrammingSkillsTest {
     
