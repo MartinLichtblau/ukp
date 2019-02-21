@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Hello UKP candidate.
@@ -15,8 +16,8 @@ import java.util.HashMap;
  * 3. Add the missing JavaDocs at a level of detail that you consider as appropriate.
  * #change formatting for better comprehension and to reduce line length (style convention)
  * 4. Write a <b>single</b> method that <b>returns</b>
- *      - the number of items in tokenMap
- *      - the average length (as double value) of the elements in tokenMap after calling applyFilters()
+ *      - the number of items in frequencyTable
+ *      - the average length (as double value) of the elements in frequencyTable after calling applyFilters()
  *      - the number of tokens starting with "a" (case sensitive).
  *    Output this information.
  *
@@ -35,16 +36,14 @@ import java.util.HashMap;
 
 
 public class Tokenizer { // #change classname to express what it does.
-    // @TODO remove line spacing between variables
     private static final String CHARSET = "ISO-8859-1"; // #style #change order of modifiers
 
     private File inputDir;
-    private int minTokenLength; // #change naming for better comprehension
+    private int minTokenLength; // #change: give descriptive names
     private int maxTokenLength;
-    
-    HashMap<String, Integer> tokenMap; // @TODO add variable description. What is the string and integer
-    // @TODO the only var that could be public
-    // @TODO use map instead of HashMap for more freedom without a downside.
+    // frequencyTable<token, frequency/count> #change: add explanation for central variable.
+    // #change: use Map instead of Hashmap since it's more versatile and call var for what it is.
+    private Map<String, Integer> frequencyTable;
     
     public Tokenizer(File pInputDir, int pMinChars, int pMaxChars) {
         // @TODO rename. Don't use prefixes (Hungarian Notation)
@@ -84,14 +83,14 @@ public class Tokenizer { // #change classname to express what it does.
             
             System.out.println(file.getAbsolutePath());
             
-            tokenMap = getFileTokens(file); // @TODO merge existing tokens with new tokens. ! same tokens
+            frequencyTable = getFileTokens(file); // @TODO merge existing tokens with new tokens. ! same tokens
         }
     }
 
-    // @TODO put tokens directly in tokenMap? Would save much effort.
-    private HashMap<String, Integer> getFileTokens(File infile) {
+    // @TODO put tokens directly in frequencyTable? Would save much effort.
+    private Map<String, Integer> getFileTokens(File infile) {
         
-        HashMap<String, Integer> fileTokens = new HashMap<String, Integer>();
+        Map<String, Integer> fileTokens = new HashMap<String, Integer>();
         
         BufferedReader in;
         String line;
@@ -119,9 +118,9 @@ public class Tokenizer { // #change classname to express what it does.
     
     private void applyFilters() {
         try {
-            for (String token : tokenMap.keySet()) {
+            for (String token : frequencyTable.keySet()) {
                 if (token.length() < minTokenLength || token.length() > maxTokenLength) {
-                        tokenMap.remove(token);
+                        frequencyTable.remove(token);
                 }
             }
         } // @TODO remove line break before catch
@@ -131,7 +130,7 @@ public class Tokenizer { // #change classname to express what it does.
     private void outputTokens() {
         // @TODO directly print foreach or use stringbuilder. Since no fx no return don't use var.
         String output = "";
-        for (String token : tokenMap.keySet()) {
+        for (String token : frequencyTable.keySet()) {
             output += token + "\n";
         }
         System.out.println(output);
