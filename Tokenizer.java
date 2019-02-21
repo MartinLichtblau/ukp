@@ -51,8 +51,8 @@ public class Tokenizer { // #change classname to express what it does.
         // Constructor needs to be public?
         
         inputDir = pInputDir; // @TODO this.inputDir = inputDir
-        minimumCharacters = pMinChars;
-        maximumCharacters = pMaxChars;
+        minTokenLength = pMinChars;
+        maxTokenLength = pMaxChars;
         
         if ((pMinChars == 0) || (pMaxChars == 0)) { // @TODO max must be equal or bigger than min. Give explanation in error.
             throw new RuntimeException("Configuration parameters have not been correctly initialized.");
@@ -120,7 +120,7 @@ public class Tokenizer { // #change classname to express what it does.
     private void applyFilters() {
         try {
             for (String token : tokenMap.keySet()) {
-                if (token.length() < minimumCharacters || token.length() > maximumCharacters) {
+                if (token.length() < minTokenLength || token.length() > maxTokenLength) {
                         tokenMap.remove(token);
                 }
             }
