@@ -2,13 +2,7 @@ import java.io.BufferedReader; // import only what's necessary, to make it expli
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Collections; // @TODO remove unused imports
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Hello UKP candidate.
@@ -31,13 +25,16 @@ import java.util.Map;
  */
 
 /*
+
     @TODO put all overall changes in separate block
     Definitions:
         Style Guide = Google Java Style Guide
 
     @TODO remove unnecessary line breaks based on
  */
-public class ProgrammingSkillsTest { // @TODO this is a tokenizer, should call it such. But am I allowed to change classname?
+
+
+public class Tokenizer { // #change classname to express what it does.
     // @TODO remove line spacing between variables
     public static final String CHARSET = "ISO-8859-1"; // #style #change order of modifiers
 
@@ -52,7 +49,7 @@ public class ProgrammingSkillsTest { // @TODO this is a tokenizer, should call i
     // @TODO the only var that could be public
     // @TODO use map instead of HashMap for more freedom without a downside.
     
-    public ProgrammingSkillsTest(File pInputDir, int pMinChars, int pMaxChars) {
+    public Tokenizer(File pInputDir, int pMinChars, int pMaxChars) {
         // @TODO rename. Don't use prefixes (Hungarian Notation)
         // Constructor needs to be public?
         
@@ -144,17 +141,23 @@ public class ProgrammingSkillsTest { // @TODO this is a tokenizer, should call i
     }
     
     public static void main(String[] args) {
+        Tokenizer tokenizer = null;
+        // #change error handling to check path validity and that args1&2 are integers. Basic error handling is a must.
         if (args.length != 3) {
-            System.err.println("Wrong number of parameters: java <application> <indir> <minChars> <maxChars>"); // @TODO seems strange....
+            System.err.println("Expected three arguments: inputFolder minTokenLength maxTokenLength");
             System.exit(1);
         }
-
-        // @TODO don't use vars, use directly as parameters
-        File inputDir = new File(args[0]);
-        int minChars = new Integer(args[1]);
-        int maxChars = new Integer(args[2]);
-        
-        ProgrammingSkillsTest pst = new ProgrammingSkillsTest(inputDir, minChars, maxChars);
-        pst.run();
+        File inputFolder = new File(args[0]);
+        if (!inputFolder.exists() && !inputFolder.isDirectory()) {
+            System.err.println("Args[0] is not a valid path to a folder.");
+            System.exit(1);
+        }
+        try {
+            tokenizer = new Tokenizer(inputFolder, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        } catch (NumberFormatException e) {
+            System.err.println("Args[1] and Args[2] must be integers.");
+            System.exit(1);
+        }
+        tokenizer.run();
     }
 }
