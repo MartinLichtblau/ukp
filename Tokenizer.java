@@ -141,23 +141,25 @@ public class Tokenizer { // #change classname to express what it does.
     }
     
     public static void main(String[] args) {
-        Tokenizer tokenizer = null;
         // #change error handling to check path validity and that args1&2 are integers. Basic error handling is a must.
         if (args.length != 3) {
             System.err.println("Expected three arguments: inputFolder minTokenLength maxTokenLength");
             System.exit(1);
         }
         File inputFolder = new File(args[0]);
-        if (!inputFolder.exists() && !inputFolder.isDirectory()) {
+        if (!inputFolder.exists() || !inputFolder.isDirectory()) {
             System.err.println("Args[0] is not a valid path to a folder.");
             System.exit(1);
         }
+        int minTokenLength = 0, maxTokenLength = 0;
         try {
-            tokenizer = new Tokenizer(inputFolder, Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+            minTokenLength = Integer.parseInt(args[1]);
+            maxTokenLength = Integer.parseInt(args[2]);
         } catch (NumberFormatException e) {
             System.err.println("Args[1] and Args[2] must be integers.");
             System.exit(1);
         }
+        Tokenizer tokenizer = new Tokenizer(inputFolder, minTokenLength, maxTokenLength);
         tokenizer.run();
     }
 }
