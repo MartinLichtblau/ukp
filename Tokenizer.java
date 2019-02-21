@@ -29,9 +29,9 @@ import java.util.Map;
 
     @TODO put all overall changes in separate block
     Definitions:
-        Style Guide = Google Java Style Guide
+        style-guide = Google Java Style Guide
 
-    @TODO remove unnecessary line breaks based on
+    #change remove unnecessary line breaks and indents for consistency, better readability, and to adhere to style-guide.
  */
 
 
@@ -49,11 +49,9 @@ public class Tokenizer { // #change classname to express what it does.
     public Tokenizer(File pInputDir, int pMinChars, int pMaxChars) {
         // @TODO rename. Don't use prefixes (Hungarian Notation)
         // Constructor needs to be public?
-        
         inputDir = pInputDir; // @TODO this.inputDir = inputDir
         minTokenLength = pMinChars;
         maxTokenLength = pMaxChars;
-        
         if ((pMinChars == 0) || (pMaxChars == 0)) { // @TODO max must be equal or bigger than min. Give explanation in error.
             throw new RuntimeException("Configuration parameters have not been correctly initialized.");
         }
@@ -66,33 +64,26 @@ public class Tokenizer { // #change classname to express what it does.
     }
     
     private void readFiles() {
-
         // @TODO consider subfolders
         File[] files = inputDir.listFiles(); // If Java 8 I would use Files.walk(). With Java 7 Files.newDirectoryStream()
         if (files == null) {
             System.err.println("Filelist is empty. Directory: " + inputDir.getAbsolutePath());
             System.exit(1);
         }
-        
         for (int i = 0; i < files.length; i++) {
             File file = new File(files[i].getAbsoluteFile().toString());
-            
             if (file.length() == 0) {
                 System.out.println("Skipping emtpy file " + file.getAbsolutePath());
                 continue;
             }
-            
             System.out.println(file.getAbsolutePath());
-            
             frequencyTable = getFileTokens(file); // @TODO merge existing tokens with new tokens. ! same tokens
         }
     }
 
     // @TODO put tokens directly in frequencyTable? Would save much effort.
     private Map<String, Integer> getFileTokens(File infile) {
-        
         Map<String, Integer> fileTokens = new HashMap<String, Integer>();
-        
         BufferedReader in;
         String line;
         try {
@@ -102,8 +93,7 @@ public class Tokenizer { // #change classname to express what it does.
                 for (String part : lineParts) {
                     if (fileTokens.containsKey(part)) {
                         fileTokens.put(part, fileTokens.get(part) + 1); // increment occurrence count @TODO use replace to make it specific
-                    } // @TODO check parenthesis formatting
-                    else {
+                    } else {
                         fileTokens.put(part, 1);
                     }    
                 }
@@ -113,7 +103,6 @@ public class Tokenizer { // #change classname to express what it does.
             System.err.println(e);
             // @TODO do appropriate error handling, file would stay open, refactor the whole function?
         }
-
         return fileTokens;
     }
     
