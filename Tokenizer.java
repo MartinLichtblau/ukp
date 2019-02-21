@@ -114,7 +114,7 @@ public class Tokenizer { // #change classname to express what it does.
         try {
             for (Map.Entry<String, Integer> token : frequencyTable.entrySet()) {
                 int tokenLength = token.getKey().length();
-                if (tokenLength > minTokenLength || tokenLength < maxTokenLength) {
+                if (tokenLength >= minTokenLength && tokenLength <= maxTokenLength) {
                     filteredFT.put(token.getKey(), token.getValue());
                 }
             }
