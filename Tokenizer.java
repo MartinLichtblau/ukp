@@ -32,6 +32,7 @@ import java.util.Map;
         style-guide = Google Java Style Guide
 
     #change line breaks and indents for consistency, better readability, and to adhere to style-guide.
+    #change: make everything private beside constructor, run(), and getStats().
  */
 
 
@@ -108,14 +109,20 @@ public class Tokenizer { // #change classname to express what it does.
     }
     
     private void applyFilters() {
+        // #change: alter frequencyTable only on success of all filters for all entries. Becomes relevant with more complex filters.
+        Map<String, Integer> filteredFT = new HashMap<>();
         try {
-            for (String token : frequencyTable.keySet()) {
-                if (token.length() < minTokenLength || token.length() > maxTokenLength) {
-                        frequencyTable.remove(token);
+            for (Map.Entry<String, Integer> token : frequencyTable.entrySet()) {
+                int tokenLength = token.getKey().length();
+                if (tokenLength > minTokenLength || tokenLength < maxTokenLength) {
+                    filteredFT.put(token.getKey(), token.getValue());
                 }
             }
-        } // @TODO remove line break before catch
-        catch(Exception e) {} // @TODO appropriately handle exception
+        } catch(Exception e) {
+            System.err.println("Couldn't apply filters because: " + e);
+        } finally { // @TODO appropriately handle exception
+            frequencyTable = filteredFT;
+        }
     }
     
     private void outputTokens() {
