@@ -16,12 +16,12 @@ import java.util.Map;
  * 2. The program also contains some questionable programming constructs (e.g. disregarding Java naming conventions, etc.).
  *    Try to find as many as you can, and correct them. Comment your changes and shortly explain the reasons.
  * 3. Add the missing JavaDocs at a level of detail that you consider as appropriate.
+ * #change formatting for better comprehension and to reduce line length (style convention)
  * 4. Write a <b>single</b> method that <b>returns</b>
  *      - the number of items in tokenMap
  *      - the average length (as double value) of the elements in tokenMap after calling applyFilters()
  *      - the number of tokens starting with "a" (case sensitive).
  *    Output this information.
- *    #change formatting for better comprehension and to reduce line length (style convention)
  *
  * @author zesch
  */
