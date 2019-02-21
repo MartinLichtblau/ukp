@@ -31,7 +31,7 @@ import java.util.Map;
     Definitions:
         style-guide = Google Java Style Guide
 
-    #change remove unnecessary line breaks and indents for consistency, better readability, and to adhere to style-guide.
+    #change line breaks and indents for consistency, better readability, and to adhere to style-guide.
  */
 
 
@@ -45,15 +45,16 @@ public class Tokenizer { // #change classname to express what it does.
     // frequencyTable<token, frequency/count> #change: add explanation for central variable.
     // #change: use Map instead of Hashmap since it's more versatile and call var for what it is.
     private Map<String, Integer> frequencyTable;
-    
-    public Tokenizer(File pInputDir, int pMinChars, int pMaxChars) {
-        // @TODO rename. Don't use prefixes (Hungarian Notation)
-        // Constructor needs to be public?
-        inputDir = pInputDir; // @TODO this.inputDir = inputDir
-        minTokenLength = pMinChars;
-        maxTokenLength = pMaxChars;
-        if ((pMinChars == 0) || (pMaxChars == 0)) { // @TODO max must be equal or bigger than min. Give explanation in error.
-            throw new RuntimeException("Configuration parameters have not been correctly initialized.");
+
+    // @TODO Constructor needs to be public?
+    // #change parameter names to match instance vars. Don't use prefixes (Hungarian Notation).
+    public Tokenizer(File inputDir, int minTokenLength, int maxTokenLength) {
+        this.inputDir = inputDir; // #change: use this.name for clarification.
+        this.minTokenLength = minTokenLength;
+        this.maxTokenLength = maxTokenLength;
+        // #change: check that maxTokenLength is >= min
+        if (minTokenLength == 0 || maxTokenLength == 0 || minTokenLength > maxTokenLength) {
+            throw new RuntimeException("Both min/max token length must me greater zero and max length >= min."); // @TODO error handling ....
         }
     }
     
@@ -132,7 +133,7 @@ public class Tokenizer { // #change classname to express what it does.
             System.err.println("Expected three arguments: inputFolder minTokenLength maxTokenLength");
             System.exit(1);
         }
-        File inputDir = new File(args[0]);
+        File inputDir = new File(args[0]); // @TODO perhaps move checks to constructor
         if (!inputDir.exists() || !inputDir.isDirectory()) {
             System.err.println("Args[0] is not a valid path to a directory/folder.");
             System.exit(1);
