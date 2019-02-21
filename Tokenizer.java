@@ -126,12 +126,13 @@ public class Tokenizer { // #change classname to express what it does.
     }
     
     private void outputTokens() {
-        // @TODO directly print foreach or use stringbuilder. Since no fx no return don't use var.
-        String output = "";
+        // #change: use stringBuiler instead of += to improve performance by not creating new string objects in every loop.
+        StringBuilder stringBuilder = new StringBuilder();
         for (String token : frequencyTable.keySet()) {
-            output += token + "\n";
+            stringBuilder.append(token);
+            stringBuilder.append("\n");
         }
-        System.out.println(output);
+        System.out.println(stringBuilder);
     }
     
     public static void main(String[] args) {
