@@ -36,14 +36,11 @@ import java.util.HashMap;
 
 public class Tokenizer { // #change classname to express what it does.
     // @TODO remove line spacing between variables
-    public static final String CHARSET = "ISO-8859-1"; // #style #change order of modifiers
+    private static final String CHARSET = "ISO-8859-1"; // #style #change order of modifiers
 
-    public File inputDir;
-    
-    public double nrofFiles; // @TODO remove unused code in general
-    
-    public int minimumCharacters; // @TODO rename to minTokenLength and max ... Reason naming should be consistent and concise.
-    public int maximumCharacters;
+    private File inputDir;
+    private int minTokenLength; // #change naming for better comprehension
+    private int maxTokenLength;
     
     HashMap<String, Integer> tokenMap; // @TODO add variable description. What is the string and integer
     // @TODO the only var that could be public
@@ -146,9 +143,9 @@ public class Tokenizer { // #change classname to express what it does.
             System.err.println("Expected three arguments: inputFolder minTokenLength maxTokenLength");
             System.exit(1);
         }
-        File inputFolder = new File(args[0]);
-        if (!inputFolder.exists() || !inputFolder.isDirectory()) {
-            System.err.println("Args[0] is not a valid path to a folder.");
+        File inputDir = new File(args[0]);
+        if (!inputDir.exists() || !inputDir.isDirectory()) {
+            System.err.println("Args[0] is not a valid path to a directory/folder.");
             System.exit(1);
         }
         int minTokenLength = 0, maxTokenLength = 0;
@@ -159,7 +156,7 @@ public class Tokenizer { // #change classname to express what it does.
             System.err.println("Args[1] and Args[2] must be integers.");
             System.exit(1);
         }
-        Tokenizer tokenizer = new Tokenizer(inputFolder, minTokenLength, maxTokenLength);
+        Tokenizer tokenizer = new Tokenizer(inputDir, minTokenLength, maxTokenLength);
         tokenizer.run();
     }
 }
