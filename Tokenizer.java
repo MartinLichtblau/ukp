@@ -154,40 +154,41 @@ public class Tokenizer { // #change classname to express what it does.
         }
         applyFilters();
         int typeCount = frequencyTable.size(); // the number of types in FT (see Type/Token distinction) = rows in table.
-        long tokenCount = 0;
-        long textLengthSum = 0;
+        long tokenLengthProduct;
+        long sumOverAllTypes = 0;
+        long totalNumTokens = 0;
         double avgTokenLength;
-        int numATokens = 0;
+        long aTokenCount = 0;
         for (Map.Entry<String, Integer> token : frequencyTable.entrySet()) {
-            long tokenLengthSum = token.getKey().length() * token.getValue();
-            textLengthSum += tokenLengthSum;
-            tokenCount += token.getValue();
+            tokenLengthProduct = token.getKey().length() * token.getValue();
+            sumOverAllTypes += tokenLengthProduct;
+            totalNumTokens += token.getValue();
             if(token.getKey().startsWith("a")) {
-                numATokens++; // Make type token distinction
+                aTokenCount += token.getValue();
             }
         }
-        avgTokenLength = textLengthSum / tokenCount;
-        return new Stats(typeCount, avgTokenLength, numATokens);
+        avgTokenLength = sumOverAllTypes / totalNumTokens;
+        return new Stats(typeCount, avgTokenLength, aTokenCount);
     }
 
     // use a class because it's explicit, thus aids comprehension, and further metrics can be easily added.
     private class Stats {
-        int numDistinctTokens;
+        int typeCount;
         double avgTokenLength;
-        int numATokens;
+        long aTokenCount;
 
-        public Stats(int numDistinctTokens, double avgTokenLength, int numATokens) {
-            this.numDistinctTokens = numDistinctTokens;
+        public Stats(int typeCount, double avgTokenLength, long aTokenCount) {
+            this.typeCount = typeCount;
             this.avgTokenLength = avgTokenLength;
-            this.numATokens = numATokens;
+            this.aTokenCount = aTokenCount;
         }
 
         @Override
         public String toString() {
-            return "Tokenizer Stats: " +
-                    "numDistinctTokens=" + numDistinctTokens +
-                    ", avgTokenLength=" + avgTokenLength +
-                    ", numATokens=" + numATokens;
+            return "Tokenizer Stats:" +
+                    " different types = " + typeCount +
+                    ", average token length = " + avgTokenLength +
+                    ", tokens beginning with a = " + aTokenCount;
         }
     }
     
@@ -207,7 +208,7 @@ public class Tokenizer { // #change classname to express what it does.
         }
         Tokenizer tokenizer = new Tokenizer(args[0], minTokenLength, maxTokenLength);
         tokenizer.run();
-        // #change: get statistics as in task 4. and output them.
+        // get statistics and output them.
         Stats stats = tokenizer.getStats();
         System.out.println(stats);
     }
