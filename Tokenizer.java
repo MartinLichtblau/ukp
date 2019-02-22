@@ -14,9 +14,9 @@ import java.util.Map;
  * 2. The program also contains some questionable programming constructs (e.g. disregarding Java naming conventions, etc.).
  *    Try to find as many as you can, and correct them. Comment your changes and shortly explain the reasons.
  * 3. Add the missing JavaDocs at a level of detail that you consider as appropriate.
- * #change formatting for better comprehension and to reduce line length (style convention)
+ * #change formatting for better comprehension and to reduce line length (style-guide)
  * 4. Write a <b>single</b> method that <b>returns</b>
- *      - the number of items in frequencyTable
+ *      - the number of items in tokenMap #change: now called frequencyTable
  *      - the average length (as double value) of the elements in frequencyTable after calling applyFilters()
  *      - the number of tokens starting with "a" (case sensitive).
  *    Output this information.
@@ -66,10 +66,10 @@ public class Tokenizer { // #change classname to express what it does.
     }
     
     private void readFiles() {
-        // @TODO consider subfolders
-        File[] files = inputDir.listFiles(); // If Java 8 I would use Files.walk(). With Java 7 Files.newDirectoryStream()
-        if (files == null) {
-            System.err.println("Filelist is empty. Directory: " + inputDir.getAbsolutePath());
+        // @TODO consider subfolders // If Java 8 I would use Files.walk(). With Java 7 Files.newDirectoryStream()
+        File[] files = inputDir.listFiles();
+        if (files == null || files.length == 0) { // #change: check length to detect if folder empty.
+            System.err.println("No files found in directory: " + inputDir.getAbsolutePath()); // #change: Better wording.
             System.exit(1);
         }
         for (int i = 0; i < files.length; i++) {
@@ -134,6 +134,46 @@ public class Tokenizer { // #change classname to express what it does.
         }
         System.out.println(stringBuilder);
     }
+
+    public Stats getStats() {
+        applyFilters();
+        int numDistinctTokens = frequencyTable.size();
+        long tokenCount = 0;
+        long textLengthSum = 0;
+        double avgTokenLength;
+        int numATokens = 0;
+        for (Map.Entry<String, Integer> token : frequencyTable.entrySet()) {
+            long tokenLengthSum = token.getKey().length() * token.getValue();
+            textLengthSum += tokenLengthSum;
+            tokenCount += token.getValue();
+            if(token.getKey().startsWith("a")) {
+                numATokens++; // Make type token distinction
+            }
+        }
+        avgTokenLength = textLengthSum / tokenCount;
+        return new Stats(numDistinctTokens, avgTokenLength, numATokens);
+    }
+
+    private class Stats {
+        int numDistinctTokens;
+        double avgTokenLength;
+        int numATokens;
+
+        public Stats(int numDistinctTokens, double avgTokenLength, int numATokens) {
+            this.numDistinctTokens = numDistinctTokens;
+            this.avgTokenLength = avgTokenLength;
+            this.numATokens = numATokens;
+        }
+
+        @Override
+        public String toString() {
+            return "Tokenizer Stats: " +
+                    "numDistinctTokens=" + numDistinctTokens +
+                    ", avgTokenLength=" + avgTokenLength +
+                    ", numATokens=" + numATokens +
+                    '}';
+        }
+    }
     
     public static void main(String[] args) {
         // #change error handling to check path validity and that args1&2 are integers. Basic error handling is a must.
@@ -156,5 +196,7 @@ public class Tokenizer { // #change classname to express what it does.
         }
         Tokenizer tokenizer = new Tokenizer(inputDir, minTokenLength, maxTokenLength);
         tokenizer.run();
+        Stats stats = tokenizer.getStats();
+        System.out.println(stats);
     }
 }
