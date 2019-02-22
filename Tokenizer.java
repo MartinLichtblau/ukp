@@ -170,8 +170,7 @@ public class Tokenizer { // #change classname to express what it does.
             return "Tokenizer Stats: " +
                     "numDistinctTokens=" + numDistinctTokens +
                     ", avgTokenLength=" + avgTokenLength +
-                    ", numATokens=" + numATokens +
-                    '}';
+                    ", numATokens=" + numATokens;
         }
     }
     
@@ -196,6 +195,7 @@ public class Tokenizer { // #change classname to express what it does.
         }
         Tokenizer tokenizer = new Tokenizer(inputDir, minTokenLength, maxTokenLength);
         tokenizer.run();
+        // #change: get statistics as in task 4. and output them.
         Stats stats = tokenizer.getStats();
         System.out.println(stats);
     }
