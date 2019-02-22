@@ -1,7 +1,8 @@
-import java.io.BufferedReader; // import only what's necessary, to make it explicit, performance, for IDE usage.
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+import java.nio.file.DirectoryStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -40,16 +41,23 @@ public class Tokenizer { // #change classname to express what it does.
     // #change modifier order. #change charset/encoding to UTF-8, since it's defacto standard and ISO-8859-1 is dead.
     private static final String CHARSET = "UTF-8";
 
-    private File inputDir;
+    private Path inputDir;
     private int minTokenLength; // #change: give descriptive names
     private int maxTokenLength;
-    // frequencyTable<token, frequency/count> #change: add explanation for central variable.
     // #change: use Map instead of Hashmap since it's more versatile and call var for what it is.
-    private Map<String, Integer> frequencyTable;
+    // frequencyTable<type/token, frequency/count> #change: add explanation for central variable.
+    private Map<String, Integer> frequencyTable = new HashMap<>(); // #change: always init maps.
 
     // @TODO Constructor needs to be public?
     // #change parameter names to match instance vars. Don't use prefixes (Hungarian Notation).
-    public Tokenizer(File inputDir, int minTokenLength, int maxTokenLength) {
+    // #change use string instead of file, to makes things cleaner and caller doesn't have to import io.file just for that.
+    // #change do checks in constructor and not in main.
+    public Tokenizer(String dir, int minTokenLength, int maxTokenLength) {
+        Path inputDir = Paths.get(dir);
+        if (!Files.exists(inputDir) || !Files.isDirectory(inputDir)) {
+            System.err.println("Args[0] is not a valid path to a directory/folder.");
+            System.exit(1);
+        }
         this.inputDir = inputDir; // #change: use this.name for clarification.
         this.minTokenLength = minTokenLength;
         this.maxTokenLength = maxTokenLength;
@@ -67,51 +75,56 @@ public class Tokenizer { // #change classname to express what it does.
 
     // readFiles is the gate that makes sure that FT contains tokens.
     private void readFiles() {
-        // @TODO consider subfolders // If Java 8 I would use Files.walk(). With Java 7 Files.newDirectoryStream()
-        File[] files = inputDir.listFiles();
-        if (files == null || files.length == 0) { // #change: check length to detect if folder empty.
-            System.err.println("No files found in directory: " + inputDir.getAbsolutePath()); // #change: Better wording.
-            System.exit(1);
-        }
-        for (int i = 0; i < files.length; i++) {
-            File file = new File(files[i].getAbsoluteFile().toString());
-            if (file.length() == 0) {
-                System.out.println("Skipping emtpy file " + file.getAbsolutePath());
-                continue;
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(inputDir)) {
+            for (Path path : stream) {
+                if(Files.isDirectory(path)) {
+                    System.err.println("Subdirectories are not allowed.");
+                } else {
+                    // #change: fuse tokens of new file in existing frequency table.
+                    String tokens [] = getFileTokens(path);
+                    if (tokens == null) {
+                        System.out.println("No tokens found in file: " + path);
+                    } else {
+                        for (String token : tokens) {
+                            // add new token or increment existing
+                            frequencyTable.put(token, frequencyTable.getOrDefault(token, 0) + 1);
+                        }
+                    }
+                }
             }
-            System.out.println(file.getAbsolutePath());
-            frequencyTable = getFileTokens(file); // @TODO merge existing tokens with new tokens. ! same tokens
+        } catch (IOException ex) {
+            System.err.println("An I/O problem has occurred while reading files.");
+            // @TODO do I need to close the stream or throw error so it closes?
         }
-        // #change: exit if no tokens found and FT empty to save FT checks in downstream methods.
+        // #change: exit directly if no tokens found in inputDir in order not to do null-checks in every downstream method.
         if(frequencyTable == null || frequencyTable.size() == 0) {
-            System.err.println("No tokens found in directory: " + inputDir.getAbsolutePath());
+            System.err.println("No tokens found in directory: " + inputDir);
             System.exit(1);
         }
     }
 
-    // @TODO put tokens directly in frequencyTable? Would save much effort.
-    private Map<String, Integer> getFileTokens(File infile) {
-        Map<String, Integer> fileTokens = new HashMap<String, Integer>();
-        BufferedReader in;
+    // #change: return String[] instead of Hashmap, path parameter instead of File, BufferedReader, checks, functionality, ...
+    // Simply return token array for a given file.
+    private String[] getFileTokens(Path filePath) {
+        String tokens [] = null;
+        BufferedReader in = null;
         String line;
         try {
-            in = new BufferedReader(new InputStreamReader(new FileInputStream(infile), CHARSET));
+            in = new BufferedReader(new FileReader(filePath.toFile()));
             while ((line = in.readLine()) != null) {
-                String lineParts[] = line.split(" "); // split text in tokens @TODO rename parts into tokens
-                for (String part : lineParts) {
-                    if (fileTokens.containsKey(part)) {
-                        fileTokens.put(part, fileTokens.get(part) + 1); // increment occurrence count @TODO use replace to make it specific
-                    } else {
-                        fileTokens.put(part, 1);
-                    }    
-                }
+                tokens = line.split(" "); // split text-line in tokens.
             }
-            in.close();
         } catch (Exception e) {
             System.err.println(e);
             // @TODO do appropriate error handling, file would stay open, refactor the whole function?
+        } finally {
+            try {
+                in.close(); // #change: appropriately close stream in any case to avoid memory leaks
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        return fileTokens;
+        return tokens;
     }
     
     private void applyFilters() {
@@ -135,8 +148,7 @@ public class Tokenizer { // #change classname to express what it does.
         // #change: use stringBuiler instead of += to improve performance by not creating new string objects in every loop.
         StringBuilder stringBuilder = new StringBuilder();
         for (String token : frequencyTable.keySet()) {
-            stringBuilder.append(token);
-            stringBuilder.append("\n");
+            stringBuilder.append(token + " " + frequencyTable.get(token) + "\n"); // @TODO remove as it was
         }
         System.out.println(stringBuilder);
     }
@@ -165,6 +177,7 @@ public class Tokenizer { // #change classname to express what it does.
         return new Stats(numDistinctTokens, avgTokenLength, numATokens);
     }
 
+    // use a class because it's explicit, thus aids comprehension, and further metrics can be easily added.
     private class Stats {
         int numDistinctTokens;
         double avgTokenLength;
@@ -191,11 +204,6 @@ public class Tokenizer { // #change classname to express what it does.
             System.err.println("Expected three arguments: inputFolder minTokenLength maxTokenLength");
             System.exit(1);
         }
-        File inputDir = new File(args[0]); // @TODO perhaps move checks to constructor
-        if (!inputDir.exists() || !inputDir.isDirectory()) {
-            System.err.println("Args[0] is not a valid path to a directory/folder.");
-            System.exit(1);
-        }
         int minTokenLength = 0, maxTokenLength = 0;
         try {
             minTokenLength = Integer.parseInt(args[1]);
@@ -204,7 +212,7 @@ public class Tokenizer { // #change classname to express what it does.
             System.err.println("Args[1] and Args[2] must be integers.");
             System.exit(1);
         }
-        Tokenizer tokenizer = new Tokenizer(inputDir, minTokenLength, maxTokenLength);
+        Tokenizer tokenizer = new Tokenizer(args[0], minTokenLength, maxTokenLength);
         tokenizer.run();
         // #change: get statistics as in task 4. and output them.
         Stats stats = tokenizer.getStats();
