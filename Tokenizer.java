@@ -64,7 +64,8 @@ public class Tokenizer { // #change classname to express what it does.
         applyFilters();
         outputTokens();
     }
-    
+
+    // readFiles is the gate that makes sure that FT contains tokens.
     private void readFiles() {
         // @TODO consider subfolders // If Java 8 I would use Files.walk(). With Java 7 Files.newDirectoryStream()
         File[] files = inputDir.listFiles();
@@ -80,6 +81,11 @@ public class Tokenizer { // #change classname to express what it does.
             }
             System.out.println(file.getAbsolutePath());
             frequencyTable = getFileTokens(file); // @TODO merge existing tokens with new tokens. ! same tokens
+        }
+        // #change: exit if no tokens found and FT empty to save FT checks in downstream methods.
+        if(frequencyTable == null || frequencyTable.size() == 0) {
+            System.err.println("No tokens found in directory: " + inputDir.getAbsolutePath());
+            System.exit(1);
         }
     }
 
@@ -136,6 +142,11 @@ public class Tokenizer { // #change classname to express what it does.
     }
 
     public Stats getStats() {
+        // #change: check FT since getStats() is public and can be called in any order.
+        if(frequencyTable == null || frequencyTable.size() == 0) {
+            System.err.println("No stats because no tokens in table. Run tokenizer.run() first.");
+            return null;
+        }
         applyFilters();
         int numDistinctTokens = frequencyTable.size();
         long tokenCount = 0;
