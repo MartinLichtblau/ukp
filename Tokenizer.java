@@ -1,10 +1,10 @@
 import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Hello UKP candidate.
@@ -81,8 +81,8 @@ public class Tokenizer { // #change classname to express what it does.
                     System.err.println("Subdirectories are not allowed.");
                 } else {
                     // #change: fuse tokens of new file in existing frequency table.
-                    String tokens [] = getFileTokens(path);
-                    if (tokens == null) {
+                    List<String> tokens = getFileTokens(path);
+                    if (tokens.isEmpty()) {
                         System.out.println("No tokens found in file: " + path);
                     } else {
                         for (String token : tokens) {
@@ -105,14 +105,14 @@ public class Tokenizer { // #change classname to express what it does.
 
     // #change: return String[] instead of Hashmap, path parameter instead of File, BufferedReader, checks, functionality, ...
     // Simply return token array for a given file.
-    private String[] getFileTokens(Path filePath) {
-        String tokens [] = null;
+    private List<String> getFileTokens(Path filePath) {
+        List<String> tokenList = new ArrayList<>();
         BufferedReader in = null;
         String line;
         try {
-            in = new BufferedReader(new FileReader(filePath.toFile()));
-            while ((line = in.readLine()) != null) {
-                tokens = line.split(" "); // split text-line in tokens.
+            in = new BufferedReader(new FileReader(filePath.toFile(), Charset.forName(CHARSET)));
+            while ((line = in.readLine()) != null) { // #note: could use Java8's .foreach() for parallelization
+                tokenList.addAll(Arrays.asList( line.split(" "))); // split text-line in tokens and add to list.
             }
         } catch (Exception e) {
             System.err.println(e);
@@ -124,17 +124,17 @@ public class Tokenizer { // #change classname to express what it does.
                 e.printStackTrace();
             }
         }
-        return tokens;
+        return tokenList;
     }
     
     private void applyFilters() {
         // #change: alter frequencyTable only on success of all filters for all entries. Becomes relevant with more complex filters.
         Map<String, Integer> filteredFT = new HashMap<>();
         try {
-            for (Map.Entry<String, Integer> token : frequencyTable.entrySet()) {
-                int tokenLength = token.getKey().length();
+            for (Map.Entry<String, Integer> entry : frequencyTable.entrySet()) {
+                int tokenLength = entry.getKey().length();
                 if (tokenLength >= minTokenLength && tokenLength <= maxTokenLength) {
-                    filteredFT.put(token.getKey(), token.getValue());
+                    filteredFT.put(entry.getKey(), entry.getValue());
                 }
             }
         } catch(Exception e) {
