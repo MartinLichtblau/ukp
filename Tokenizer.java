@@ -137,11 +137,10 @@ public class Tokenizer { // #change classname to express what it does.
                     filteredFT.put(entry.getKey(), entry.getValue());
                 }
             }
-        } catch(Exception e) {
-            System.err.println("Couldn't apply filters because: " + e);
-        } finally { // @TODO appropriately handle exception
             frequencyTable = filteredFT;
-        }
+        } catch(Exception e) {
+            System.err.println("Filters were not applied because: " + e);
+        }  // @TODO appropriately handle exception
     }
     
     private void outputTokens() {
