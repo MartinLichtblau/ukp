@@ -42,6 +42,7 @@ Overall (things that didn't belong in a single place):
 
 /**
  * Tokenizes files and provides additional statistics concerning frequency.
+ *
  * @author zesch
  * @version 2.1.0
  */
@@ -53,12 +54,15 @@ public class Tokenizer { // #change: give classname and file same self-explanato
     private int minTokenLength; // #change: give self-explanatory names.
     private int maxTokenLength;
     // #change: use Map instead of Hashmap for higher versatility. Give fitting name.
-    /** stores types of tokens as key and their occurrence count (frequency) as value. */
+    /**
+     * stores types of tokens as key and their occurrence count (frequency) as value.
+     */
     private Map<String, Integer> frequencyTable = new HashMap<>();
 
     /**
      * Creates a {@link Tokenizer} for a given directory
-     * @param inputDir {@link java.nio.file.Path Path} to directory containing files to be processed
+     *
+     * @param inputDir       {@link java.nio.file.Path Path} to directory containing files to be processed
      * @param minTokenLength tokens below this length are filtered out
      * @param maxTokenLength tokens above this length are filtered out
      * @throws IllegalArgumentException when
@@ -93,7 +97,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
         // #change: total overwork to fix bugs, error handling, clarity, and performance.
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(inputDir)) { // use try/catch to autoclose stream.
             for (Path path : stream) {
-                if(Files.isDirectory(path)) {
+                if (Files.isDirectory(path)) {
                     System.err.println("Subdirectories are not allowed.");
                 } else {
                     List<String> tokens = getFileTokens(path);
@@ -111,7 +115,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
             System.err.println("An I/O problem has occurred while reading files." + ex);
         }
         // #change: exit directly if no tokens found in inputDir, in order not to do null-checks in every downstream method.
-        if(frequencyTable == null || frequencyTable.size() == 0) {
+        if (frequencyTable == null || frequencyTable.size() == 0) {
             System.err.println("No tokens could be extracted from directory: " + inputDir);
             System.exit(1);
         }
@@ -119,6 +123,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
 
     /**
      * Returns list of tokens extracted from given file.
+     *
      * @param filePath {@link java.nio.file.Path Path} of file to be processed
      * @return list of extracted tokens, including duplicates
      */
@@ -150,7 +155,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
                 }
             }
             frequencyTable = filteredFT;
-        } catch(Exception e) { // use general exception e, to catch anything future filters may throw.
+        } catch (Exception e) { // use general exception e, to catch anything future filters may throw.
             System.err.println("Filters were not applied because: " + e);
         }
     }
@@ -173,7 +178,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
      */
     public Stats getStats() {
         // check frequencyTable since getStats() is public and could be called any time.
-        if(frequencyTable == null || frequencyTable.size() == 0) {
+        if (frequencyTable == null || frequencyTable.size() == 0) {
             System.err.println("No stats since frequencyTable is empty. Run tokenizer.run() first.");
             return null;
         }
@@ -188,7 +193,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
             tokenLengthProduct = token.getKey().length() * token.getValue();
             totalLength += tokenLengthProduct;
             totalNumTokens += token.getValue();
-            if(token.getKey().startsWith("a")) {
+            if (token.getKey().startsWith("a")) {
                 aTokenCount += token.getValue();
             }
         }
@@ -222,6 +227,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
 
     /**
      * Possible entry Point for processing inputDir with {@link Tokenizer}
+     *
      * @param args ("inputDir", "minTokenLength", "maxTokenLength")
      */
     public static void main(String[] args) {
