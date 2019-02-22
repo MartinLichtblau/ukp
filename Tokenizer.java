@@ -18,34 +18,32 @@ Task Description:
     2. The program also contains some questionable programming constructs (e.g. disregarding Java naming conventions, etc.).
         Try to find as many as you can, and correct them. Comment your changes and shortly explain the reasons.
     3. Add the missing JavaDocs at a level of detail that you consider as appropriate.
+    #change: format 4. for better comprehension and to limit line length.
     4. Write a <b>single</b> method that <b>returns</b>
-     4.1 the number of items in tokenMap
-        #note: What's meant with items? I take items = types
-     4.2 the average length (as double value) of the elements in tokenMap after calling applyFilters()
-        #note: What is an element? I assume elements = tokens. #note: call applyFilters() right before that.
-     4.3 the number of tokens starting with "a" (case sensitive).
-    Output this information. #change: format 4. for better comprehension and to limit line length.
+        4.1 the number of items in tokenMap
+            #note: What's meant with items? I assume items = types of tokens
+        4.2 the average length (as double value) of the elements in tokenMap after calling applyFilters()
+            #note: What is an element? I assume elements = tokens.
+        4.3 the number of tokens starting with "a" (case sensitive).
+    Output this information.
  */
 
 /*
-Overall Changes (that didn't belong in a single line):
-    #change: line breaks and indents for consistency, better readability, and to adhere to style-guide.
+Overall (things that didn't belong in a single place):
+    #change: remove line breaks and indents for consistency, better readability, and to adhere to style-guide.
     #change: use streams instead of bulk functions like listFiles to reduce resource usage when processing files and strings.
-        Use java.nio.file instead of java.io.Files to.
+        Use java.nio.file instead of java.io.Files.
     #change: make only public what is needed for usage, everything else should be private.
         Tokenizer constructor should be public for sure, as well as run() and getStats().
-        FrequencyTable var itself shouldn't be public, but get a getter to retrieve the extracted tokens.
- */
+        FrequencyTable var itself shouldn't be public, but should have a public getter to retrieve the extracted tokens.
 
-/**
- *
- * @author zesch
- * @version 2.1
- * @since  2
+    #note: I didn't know how deep my changes should go. Would have done things different, esp. concerning functionality.
  */
 
 /**
  * Tokenizes files and provides additional statistics concerning frequency.
+ * @author zesch
+ * @version 2.1.0
  */
 public class Tokenizer { // #change: give classname and file same self-explanatory name and put version in doc.
     // #change: reorder modifier correctly and change charset/encoding to UTF-8, since it's de-facto standard.
@@ -56,27 +54,27 @@ public class Tokenizer { // #change: give classname and file same self-explanato
     private int maxTokenLength;
     // #change: use Map instead of Hashmap for higher versatility. Give fitting name.
     /** stores types of tokens as key and their occurrence count (frequency) as value. */
-    public Map<String, Integer> frequencyTable = new HashMap<>();
+    private Map<String, Integer> frequencyTable = new HashMap<>();
 
     /**
      * Creates a {@link Tokenizer} for a given directory
      * @param inputDir {@link java.nio.file.Path Path} to directory containing files to be processed
      * @param minTokenLength tokens below this length are filtered out
      * @param maxTokenLength tokens above this length are filtered out
+     * @throws IllegalArgumentException when
      */
-    public Tokenizer(Path inputDir, int minTokenLength, int maxTokenLength) {
+    public Tokenizer(Path inputDir, int minTokenLength, int maxTokenLength) throws IllegalArgumentException {
         // #change: do semantic checks in constructor and not in main, since it could be called directly.
-        if (!Files.exists(inputDir) || !Files.isDirectory(inputDir)) { // #change: check if folder exits.
-            System.err.println(inputDir + "is not a valid path to a directory/folder.");
-            System.exit(1);
+        if (!Files.exists(inputDir) || !Files.isDirectory(inputDir)) {
+            throw new IllegalArgumentException(inputDir + "is not a valid path to a directory/folder.");
         }
-        this.inputDir = inputDir; // #change: give params and field vars same name and use this.name for clarity. No prefixes!
+        if (minTokenLength == 0 || maxTokenLength == 0 || minTokenLength > maxTokenLength) {
+            throw new IllegalArgumentException("Min/max token length must be greater zero and maxTokenLength >= min.");
+        }
+        // #change: give params and field vars same name and use this.name for clarity. No prefixes!
+        this.inputDir = inputDir;
         this.minTokenLength = minTokenLength;
         this.maxTokenLength = maxTokenLength;
-        // #change: check that maxTokenLength is >= min
-        if (minTokenLength == 0 || maxTokenLength == 0 || minTokenLength > maxTokenLength) {
-            throw new IllegalArgumentException("Both min/max token length must me greater zero and max length >= min."); // @TODO error handling ....
-        }
     }
 
     /**
@@ -112,9 +110,9 @@ public class Tokenizer { // #change: give classname and file same self-explanato
         } catch (IOException ex) {
             System.err.println("An I/O problem has occurred while reading files." + ex);
         }
-        // #change: exit directly if no tokens found in inputDir in order not to do null-checks in every downstream method.
+        // #change: exit directly if no tokens found in inputDir, in order not to do null-checks in every downstream method.
         if(frequencyTable == null || frequencyTable.size() == 0) {
-            System.err.println("No tokens found in directory: " + inputDir);
+            System.err.println("No tokens could be extracted from directory: " + inputDir);
             System.exit(1);
         }
     }
@@ -132,10 +130,9 @@ public class Tokenizer { // #change: give classname and file same self-explanato
             while ((line = in.readLine()) != null) { // #note: could use Java8's .foreach() for parallelization
                 tokenList.addAll(Arrays.asList(line.split(" "))); // extract tokens from text-line and add to list.
             }
-        } catch (Exception e) {
-            System.err.println("Couldn't get Tokens of file: " + filePath + "\n" + e);
-            // @TODO do appropriate error handling
-    }
+        } catch (IOException e) {
+            System.err.println("Couldn't read file: " + filePath + "\n" + e);
+        }
         return tokenList;
     }
 
@@ -143,7 +140,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
      * Applies filters on {@link #frequencyTable}
      */
     private void applyFilters() {
-        // #change: alter frequencyTable only on if fully successful, otherwise could result in invalid state.
+        // #change: alter frequencyTable only if all filters fully successful, to avoid invalid state.
         Map<String, Integer> filteredFT = new HashMap<>();
         try {
             for (Map.Entry<String, Integer> entry : frequencyTable.entrySet()) {
@@ -153,9 +150,9 @@ public class Tokenizer { // #change: give classname and file same self-explanato
                 }
             }
             frequencyTable = filteredFT;
-        } catch(Exception e) {
+        } catch(Exception e) { // use general exception e, to catch anything future filters may throw.
             System.err.println("Filters were not applied because: " + e);
-        }  // @TODO appropriately handle exception
+        }
     }
 
     /**
@@ -195,7 +192,7 @@ public class Tokenizer { // #change: give classname and file same self-explanato
                 aTokenCount += token.getValue();
             }
         }
-        avgTokenLength = (double) totalLength / totalNumTokens;
+        avgTokenLength = (double) totalLength / totalNumTokens; // #change: cast to get double.
         return new Stats(typeCount, avgTokenLength, aTokenCount);
     }
 
