@@ -17,9 +17,11 @@ import java.util.*;
  * 3. Add the missing JavaDocs at a level of detail that you consider as appropriate.
  * #change formatting for better comprehension and to reduce line length (style-guide)
  * 4. Write a <b>single</b> method that <b>returns</b>
- *      - the number of items in tokenMap #change: now called frequencyTable
- *      - the average length (as double value) of the elements in frequencyTable after calling applyFilters()
- *      - the number of tokens starting with "a" (case sensitive).
+ * 4.1 the number of items in tokenMap
+ *      #note: What's meant with items? I take items = types
+ * 4.2 the average length (as double value) of the elements in tokenMap after calling applyFilters()
+ *      #note: What is an element? I assume elements = tokens
+ * 4.3 the number of tokens starting with "a" (case sensitive).
  *    Output this information.
  *
  * @author zesch
@@ -38,15 +40,15 @@ import java.util.*;
 
 
 public class Tokenizer { // #change classname to express what it does.
-    // #change modifier order. #change charset/encoding to UTF-8, since it's defacto standard and ISO-8859-1 is dead.
+    // #change: reorder modifier correctly and change charset/encoding to UTF-8, since it's defacto standard and ISO-8859-1 is dead.
     private static final String CHARSET = "UTF-8";
 
     private Path inputDir;
     private int minTokenLength; // #change: give descriptive names
     private int maxTokenLength;
-    // #change: use Map instead of Hashmap since it's more versatile and call var for what it is.
+    // #change: use Map instead of Hashmap since it's more versatile and give variable better name.
     // frequencyTable<type/token, frequency/count> #change: add explanation for central variable.
-    private Map<String, Integer> frequencyTable = new HashMap<>(); // #change: always init maps.
+    private Map<String, Integer> frequencyTable = new HashMap<>();
 
     // @TODO Constructor needs to be public?
     // #change parameter names to match instance vars. Don't use prefixes (Hungarian Notation).
@@ -75,26 +77,25 @@ public class Tokenizer { // #change classname to express what it does.
 
     // readFiles is the gate that makes sure that FT contains tokens.
     private void readFiles() {
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(inputDir)) {
+        // #change: use Stream instead of listFiles for better performance>memory.
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(inputDir)) { // use try/catch to autoclose stream.
             for (Path path : stream) {
                 if(Files.isDirectory(path)) {
                     System.err.println("Subdirectories are not allowed.");
                 } else {
-                    // #change: fuse tokens of new file in existing frequency table.
                     List<String> tokens = getFileTokens(path);
                     if (tokens.isEmpty()) {
                         System.out.println("No tokens found in file: " + path);
                     } else {
-                        for (String token : tokens) {
-                            // add new token or increment existing
+                        for (String token : tokens) {   // #change: merge tokens of files in frequencyTable.
+                            // add new token or increment frequency of existing
                             frequencyTable.put(token, frequencyTable.getOrDefault(token, 0) + 1);
                         }
                     }
                 }
             }
         } catch (IOException ex) {
-            System.err.println("An I/O problem has occurred while reading files.");
-            // @TODO do I need to close the stream or throw error so it closes?
+            System.err.println("An I/O problem has occurred while reading files." + ex);
         }
         // #change: exit directly if no tokens found in inputDir in order not to do null-checks in every downstream method.
         if(frequencyTable == null || frequencyTable.size() == 0) {
@@ -107,22 +108,14 @@ public class Tokenizer { // #change classname to express what it does.
     // Simply return token array for a given file.
     private List<String> getFileTokens(Path filePath) {
         List<String> tokenList = new ArrayList<>();
-        BufferedReader in = null;
         String line;
-        try {
-            in = new BufferedReader(new FileReader(filePath.toFile(), Charset.forName(CHARSET)));
+        try (BufferedReader in = new BufferedReader(new FileReader(filePath.toFile(), Charset.forName(CHARSET)))) {
             while ((line = in.readLine()) != null) { // #note: could use Java8's .foreach() for parallelization
-                tokenList.addAll(Arrays.asList( line.split(" "))); // split text-line in tokens and add to list.
+                tokenList.addAll(Arrays.asList(line.split(" "))); // split text-line in tokens and add to list.
             }
         } catch (Exception e) {
-            System.err.println(e);
-            // @TODO do appropriate error handling, file would stay open, refactor the whole function?
-        } finally {
-            try {
-                in.close(); // #change: appropriately close stream in any case to avoid memory leaks
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            System.err.println("Couldn't get Tokens of file: " + filePath + "\n" + e);
+            // @TODO do appropriate error handling
         }
         return tokenList;
     }
@@ -147,19 +140,20 @@ public class Tokenizer { // #change classname to express what it does.
         // #change: use stringBuiler instead of += to improve performance by not creating new string objects in every loop.
         StringBuilder stringBuilder = new StringBuilder();
         for (String token : frequencyTable.keySet()) {
-            stringBuilder.append(token + " " + frequencyTable.get(token) + "\n"); // @TODO remove as it was
+            stringBuilder.append(token);
+            stringBuilder.append("\n");
         }
         System.out.println(stringBuilder);
     }
 
     public Stats getStats() {
-        // #change: check FT since getStats() is public and can be called in any order.
+        // #change: check FT since getStats() is public and can be called any time.
         if(frequencyTable == null || frequencyTable.size() == 0) {
             System.err.println("No stats because no tokens in table. Run tokenizer.run() first.");
             return null;
         }
         applyFilters();
-        int numDistinctTokens = frequencyTable.size();
+        int typeCount = frequencyTable.size(); // the number of types in FT (see Type/Token distinction) = rows in table.
         long tokenCount = 0;
         long textLengthSum = 0;
         double avgTokenLength;
@@ -173,7 +167,7 @@ public class Tokenizer { // #change classname to express what it does.
             }
         }
         avgTokenLength = textLengthSum / tokenCount;
-        return new Stats(numDistinctTokens, avgTokenLength, numATokens);
+        return new Stats(typeCount, avgTokenLength, numATokens);
     }
 
     // use a class because it's explicit, thus aids comprehension, and further metrics can be easily added.
